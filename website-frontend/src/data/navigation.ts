@@ -1,0 +1,30 @@
+import {
+  BarChart3,
+  Bike,
+  CalendarClock,
+  CircleDollarSign,
+  Gauge,
+  Headphones,
+  MessageSquareText,
+  Settings,
+  ShoppingBag,
+  Users,
+  Workflow,
+  Zap,
+} from 'lucide-react'
+
+export const navigationItems = [
+  { label: 'Dashboard', to: '/dashboard', icon: Gauge },
+  { label: 'Pipeline de vendas', to: '/pipeline', icon: Workflow },
+  { label: 'Test-Rides & frota', to: '/test-rides', icon: CalendarClock },
+  { label: 'Catálogo AIMA', to: '/catalogo', icon: Bike },
+  { label: 'Omnichannel', to: '/omnichannel', icon: MessageSquareText },
+  { label: 'Clientes 360°', to: '/clientes', icon: Users },
+  { label: 'Automações & relatórios', to: '/automacoes', icon: Zap },
+  { label: 'Leads', to: '/leads', icon: CircleDollarSign },
+  { label: 'Pedidos', to: '/pedidos', icon: ShoppingBag },
+  { label: 'Assistência técnica', to: '/assistencia', icon: Headphones },
+  { label: 'Pós-venda', to: '/pos-venda', icon: MessageSquareText },
+  { label: 'Relatórios', to: '/automacoes', icon: BarChart3 },
+  { label: 'Configurações', to: '/configuracoes', icon: Settings },
+]

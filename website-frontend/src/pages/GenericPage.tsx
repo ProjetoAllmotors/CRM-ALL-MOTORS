@@ -36,7 +36,7 @@ export function GenericPage({ title, kind }: GenericPageProps) {
     <div className="mx-auto max-w-[1500px]">
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-sm text-zinc-500">CRM All Motors</p>
+          <p className="text-sm text-slate-400">CRM All Motors</p>
           <h1 className="mt-1 font-heading text-2xl font-bold">{title}</h1>
         </div>
         {kind !== 'recovery' && (
@@ -50,19 +50,19 @@ export function GenericPage({ title, kind }: GenericPageProps) {
       {kind === 'recovery' ? (
         <RecoveryForm />
       ) : (
-        <section className="overflow-hidden rounded-card border border-zinc-200 bg-white">
-          <div className="flex flex-col gap-3 border-b border-zinc-200 p-4 sm:flex-row sm:items-center">
-            <label className="flex h-10 max-w-md flex-1 items-center gap-2 rounded-lg border border-zinc-200 px-3">
-              <Search className="h-4 w-4 text-zinc-400" />
+        <section className="overflow-hidden rounded-card border border-border bg-elevated">
+          <div className="flex flex-col gap-3 border-b border-border p-4 sm:flex-row sm:items-center">
+            <label className="flex h-10 max-w-md flex-1 items-center gap-2 rounded-lg border border-border bg-raised px-3">
+              <Search className="h-4 w-4 text-slate-400" />
               <span className="sr-only">Buscar {title}</span>
               <input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder={`Buscar ${title.toLowerCase()}`}
-                className="w-full text-sm"
+                className="w-full bg-transparent text-sm text-slate-100 placeholder:text-slate-400"
               />
             </label>
-            <button className="flex h-10 items-center justify-between gap-3 rounded-lg border border-zinc-200 px-3 text-sm text-zinc-600">
+            <button className="flex h-10 items-center justify-between gap-3 rounded-lg border border-border bg-raised px-3 text-sm text-slate-300">
               Todos os status
               <ChevronDown className="h-4 w-4" />
             </button>
@@ -70,14 +70,14 @@ export function GenericPage({ title, kind }: GenericPageProps) {
           {filteredRows.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[680px] text-left">
-                <thead className="bg-zinc-50 text-xs uppercase text-zinc-500">
+                <thead className="bg-raised text-xs uppercase text-slate-400">
                   <tr>{config.columns.map((column) => <th key={column} className="px-5 py-3 font-semibold">{column}</th>)}</tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-100">
+                <tbody className="divide-y divide-border">
                   {filteredRows.map((row) => (
-                    <tr key={row.join('-')} className="text-sm transition-colors hover:bg-zinc-50">
+                    <tr key={row.join('-')} className="text-sm text-slate-200 transition-colors hover:bg-raised">
                       {row.map((cell, index) => (
-                        <td key={`${row.join('-')}-${index}`} className={`px-5 py-4 ${index === 0 ? 'font-semibold' : 'text-zinc-600'}`}>{cell}</td>
+                        <td key={`${row.join('-')}-${index}`} className={`px-5 py-4 ${index === 0 ? 'font-semibold text-slate-100' : 'text-slate-300'}`}>{cell}</td>
                       ))}
                     </tr>
                   ))}
@@ -86,9 +86,9 @@ export function GenericPage({ title, kind }: GenericPageProps) {
             </div>
           ) : (
             <div className="flex min-h-64 flex-col items-center justify-center p-8 text-center">
-              <Search className="h-8 w-8 text-zinc-300" />
-              <h2 className="mt-3 font-heading text-base font-bold">Nenhum resultado encontrado</h2>
-              <p className="mt-1 text-sm text-zinc-500">Tente alterar os filtros ou o termo pesquisado.</p>
+              <Search className="h-8 w-8 text-slate-500" />
+              <h2 className="mt-3 font-heading text-base font-bold text-slate-100">Nenhum resultado encontrado</h2>
+              <p className="mt-1 text-sm text-slate-400">Tente alterar os filtros ou o termo pesquisado.</p>
             </div>
           )}
         </section>
@@ -99,11 +99,11 @@ export function GenericPage({ title, kind }: GenericPageProps) {
 
 function RecoveryForm() {
   return (
-    <section className="mx-auto max-w-lg rounded-card border border-zinc-200 bg-white p-6">
-      <h2 className="font-heading text-xl font-bold">Recuperar senha</h2>
-      <p className="mt-2 text-sm text-zinc-500">Enviaremos um código de confirmação para seu e-mail.</p>
-      <label htmlFor="recovery-email" className="mt-6 block text-sm font-semibold">E-mail</label>
-      <input id="recovery-email" type="email" placeholder="seu@email.com" className="mt-2 h-12 w-full rounded-lg border border-zinc-300 px-4" />
+    <section className="mx-auto max-w-lg rounded-card border border-border bg-elevated p-6">
+      <h2 className="font-heading text-xl font-bold text-slate-100">Recuperar senha</h2>
+      <p className="mt-2 text-sm text-slate-400">Enviaremos um código de confirmação para seu e-mail.</p>
+      <label htmlFor="recovery-email" className="mt-6 block text-sm font-semibold text-slate-200">E-mail</label>
+      <input id="recovery-email" type="email" placeholder="seu@email.com" className="mt-2 h-12 w-full rounded-lg border border-border bg-raised px-4 text-slate-100 placeholder:text-slate-400" />
       <button className="mt-4 h-12 w-full rounded-lg bg-brand-500 text-sm font-bold text-white hover:bg-brand-700">Enviar código</button>
     </section>
   )

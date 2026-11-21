@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { ArrowUpRight, CalendarDays, ChevronRight, CircleCheck, FileText, Wrench } from 'lucide-react'
 import { QuickActionButtons } from '../components/features/QuickActionButtons'
 import { useQuickActions } from '../components/features/useQuickActions'
+import { useUserRole } from '../auth/userRoleStore'
 
 const history = [
   { date: '30 mai · 2025', title: 'Revisão de 1.000 km agendada', detail: 'Inspeção de freios, bateria e pneus.', icon: CalendarDays },
@@ -14,13 +15,14 @@ const history = [
 export function ClientsPage() {
   const [notice, setNotice] = useState('')
   const { openChecklist } = useQuickActions()
+  const { role, userName } = useUserRole()
 
   return (
     <div className="mx-auto max-w-[1152px]">
       <header className="flex flex-col justify-between gap-5 lg:flex-row lg:items-start">
         <div>
           <h1 className="font-heading text-[28px] font-semibold tracking-tight">Clientes 360°</h1>
-          <p className="mt-1 text-sm text-slate-400">Cada cliente, uma história de energia.</p>
+          <p className="mt-1 text-sm text-slate-400">{role === 'admin' ? 'Visão global dos relacionamentos da loja.' : `Sua carteira de clientes · ${userName}`}</p>
         </div>
         <QuickActionButtons />
       </header>
@@ -31,6 +33,7 @@ export function ClientsPage() {
           <div>
             <h2 className="font-heading text-xl font-semibold">João Lima</h2>
             <p className="mt-1 text-[10px] text-slate-400">Cliente desde 03/2024 · Recife, PE · B2C</p>
+            <p className="mt-1 text-[9px] text-slate-500">Responsável: Rafael Mendes</p>
             <span className="mt-2 inline-flex items-center gap-1 rounded bg-emerald-950 px-2 py-1 text-[9px] text-emerald-300">
               <CircleCheck className="h-3 w-3" />Cliente ativo
             </span>

@@ -1,6 +1,8 @@
 import { CalendarDays, ChevronRight } from 'lucide-react'
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { QuickActionButtons } from '../components/features/QuickActionButtons'
+import { useUserRole } from '../auth/userRoleStore'
+import { useDateFilter } from '../components/layout/DateFilterContext'
 
 const metrics = [
   { title: 'Veículos vendidos', value: '48', change: '↑ 20%', note: 'vs. outubro · rede', detail: 'Meta mensal: 60 veículos', progress: 80 },
@@ -25,28 +27,42 @@ const states = [
 ]
 
 const actions = [
-  { time: '09:30', title: 'Test-Ride · Mariana Costa', detail: 'K1-May • Recife, PE', badge: 'Confirmado', tone: 'success' },
-  { time: '11:00', title: 'Enviar proposta · Mercado Boa Vista', detail: 'ALL-TK • Maceió, AL', badge: 'B2B', tone: 'blue' },
-  { time: '14:30', title: 'Revisão de 1.000 km · João Lima', detail: 'ALL-B1Z • João Pessoa, PB', badge: 'Pós-venda', tone: 'success' },
+  { time: '09:30', title: 'Test-Ride · Mariana Costa', detail: 'K1-May • Recife, PE', badge: 'Confirmado', tone: 'success', responsible: 'Rafael Mendes', date: '2026-11-18' },
+  { time: '11:00', title: 'Enviar proposta · Mercado Boa Vista', detail: 'ALL-TK • Maceió, AL', badge: 'B2B', tone: 'blue', responsible: 'Marina Costa', date: '2026-11-18' },
+  { time: '14:30', title: 'Revisão de 1.000 km · João Lima', detail: 'ALL-B1Z • João Pessoa, PB', badge: 'Pós-venda', tone: 'success', responsible: 'Rafael Mendes', date: '2026-11-18' },
 ]
 
 export function DashboardPage() {
+  const { role, userName } = useUserRole()
+  const { selectedDate } = useDateFilter()
+  const sellerMetrics = [
+    { title: 'Vendas do mês', value: '8', change: '↑ 2', note: 'vs. outubro', detail: 'Meta mensal: 12 vendas', progress: 67 },
+    { title: 'Comissão estimada', value: 'R$ 6.240', change: '↑ 12%', note: 'vs. outubro', detail: 'Calculada sobre as vendas registradas', progress: 72 },
+    { title: 'Conversão Test-Ride', value: '60%', change: '↑ 5 p.p.', note: 'vs. outubro', detail: '6 vendas em 10 experiências', progress: 60 },
+    { title: 'Oportunidades ativas', value: '6', change: '↑ 1', note: 'esta semana', detail: '3 follow-ups pendentes', progress: 50 },
+  ]
+  const visibleMetrics = role === 'admin' ? metrics : sellerMetrics
+  const visibleActions = actions.filter((action) =>
+    action.date === selectedDate && (role === 'admin' || action.responsible === userName),
+  )
+  const visibleRevenue = role === 'admin' ? revenue : revenue.map((point) => ({ ...point, value: Math.round(point.value * 0.08) }))
+
   return (
     <div className="mx-auto max-w-[1152px]">
       <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-start">
         <div>
-          <h1 className="font-heading text-[28px] font-semibold tracking-tight">Visão geral</h1>
-          <p className="mt-1 text-sm text-slate-400">Uma visão completa da energia do seu negócio.</p>
+          <h1 className="font-heading text-[28px] font-semibold tracking-tight">{role === 'admin' ? 'Visão geral da loja' : 'Seus indicadores e resultados'}</h1>
+          <p className="mt-1 text-sm text-slate-400">{role === 'admin' ? 'Uma visão completa da energia do seu negócio.' : `Acompanhe suas metas, comissões e vendas, ${userName.split(' ')[0]}.`}</p>
         </div>
         <QuickActionButtons />
       </div>
 
       <div className="mb-3 mt-8 flex items-center justify-between">
-        <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Performance da região selecionada</p>
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{role === 'admin' ? 'Performance da região selecionada' : 'Sua performance neste mês'}</p>
         <button className="flex items-center gap-2 text-xs text-slate-300 hover:text-white">Novembro de 2026 <CalendarDays className="h-3 w-3" /></button>
       </div>
       <section aria-label="Indicadores regionais" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {metrics.map((metric) => (
+        {visibleMetrics.map((metric) => (
           <article key={metric.title} className="rounded-xl bg-elevated px-4 py-4">
             <p className="text-xs text-slate-400">{metric.title}</p>
             <p className="mt-3 font-heading text-[30px] font-semibold leading-none">{metric.value}</p>
@@ -66,14 +82,14 @@ export function DashboardPage() {
         <article className="min-h-[290px] rounded-xl bg-elevated p-5">
           <div className="flex items-start justify-between">
             <div>
-              <h2 className="text-base font-semibold">Receita Nordeste em movimento</h2>
-              <p className="mt-1 text-[11px] text-slate-400">Acumulado mensal • R$</p>
+              <h2 className="text-base font-semibold">{role === 'admin' ? 'Receita Nordeste em movimento' : 'Sua receita em movimento'}</h2>
+              <p className="mt-1 text-[11px] text-slate-400">{role === 'admin' ? 'Acumulado mensal • R$' : 'Acumulado individual • R$'}</p>
             </div>
-            <span className="rounded-md bg-emerald-950 px-2 py-1 text-[10px] text-emerald-300">+18,4% no mês</span>
+            <span className="rounded-md bg-emerald-950 px-2 py-1 text-[10px] text-emerald-300">{role === 'admin' ? '+18,4% no mês' : '67% da meta'}</span>
           </div>
           <div className="mt-5 h-[205px]">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={revenue} margin={{ top: 8, right: 4, left: -18, bottom: 0 }}>
+              <AreaChart data={visibleRevenue} margin={{ top: 8, right: 4, left: -18, bottom: 0 }}>
                 <defs>
                   <linearGradient id="revenueFill" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="#0066FF" stopOpacity={0.14} />
@@ -91,10 +107,10 @@ export function DashboardPage() {
         </article>
 
         <article className="rounded-xl bg-elevated p-5">
-          <h2 className="text-base font-semibold">A força do Nordeste</h2>
-          <p className="mt-1 text-[11px] text-slate-400">48 veículos • distribuição por UF</p>
+          <h2 className="text-base font-semibold">{role === 'admin' ? 'A força do Nordeste' : 'Sua carteira por região'}</h2>
+          <p className="mt-1 text-[11px] text-slate-400">{role === 'admin' ? '48 veículos • distribuição por UF' : 'Oportunidades sob sua responsabilidade'}</p>
           <div className="mt-6 space-y-5">
-            {states.map((state) => (
+            {(role === 'admin' ? states : states.map((state, index) => ({ ...state, value: index === 0 ? 4 : index === 1 ? 1 : 0, share: index === 0 ? '80%' : index === 1 ? '20%' : '0%' }))).map((state) => (
               <div key={state.name} className="flex items-center gap-3 text-xs">
                 <span className="w-7 font-semibold">{state.name}</span>
                 <div className="h-2 flex-1 rounded-full bg-[#202B3D]">
@@ -110,11 +126,11 @@ export function DashboardPage() {
       <section className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,2fr)_minmax(300px,1fr)]">
         <article className="rounded-xl bg-elevated p-5">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-base font-semibold">Próximas ações da rede</h2>
+            <h2 className="text-base font-semibold">{role === 'admin' ? 'Próximas ações da rede' : 'Suas próximas ações'}</h2>
             <button className="flex items-center gap-1 text-[11px] text-[#66A5FF] hover:text-white">Ver agenda <ChevronRight className="h-3 w-3" /></button>
           </div>
           <div className="divide-y divide-border">
-            {actions.map((action) => (
+            {visibleActions.map((action) => (
               <div key={action.time} className="flex items-center gap-3 py-3">
                 <span className="w-12 text-xs text-slate-400">{action.time}</span>
                 <div className="min-w-0 flex-1">

@@ -1,12 +1,14 @@
 import { useState } from 'react'
 import { CalendarDays, ChevronDown } from 'lucide-react'
 import { QuickActionButtons } from '../components/features/QuickActionButtons'
+import { useUserRole } from '../auth/userRoleStore'
+import { useDateFilter } from '../components/layout/DateFilterContext'
 
 const rides = [
-  { time: '09:30', name: 'Mariana Costa', model: 'K1-May • Grafeno', status: 'Concluído', note: 'Triagem concluída · termo de responsabilidade', warning: false },
-  { time: '11:00', name: 'Carlos Eduardo', model: 'Bosch 1000W • Chumbo', status: 'Confirmado', note: 'Triagem concluída · termo de responsabilidade', warning: false },
-  { time: '14:30', name: 'Ana Beatriz', model: 'Ciclomotor 1200W • Chumbo', status: 'Validar CNH', note: 'CNH A / ACC · documento pendente', warning: true },
-  { time: '16:00', name: 'Pedro Alves', model: 'K-Zero • Chumbo', status: 'Confirmado', note: 'Triagem concluída · termo de responsabilidade', warning: false },
+  { time: '09:30', name: 'Mariana Costa', model: 'K1-May • Grafeno', status: 'Concluído', note: 'Triagem concluída · termo de responsabilidade', warning: false, responsible: 'Rafael Mendes', date: '2026-11-18' },
+  { time: '11:00', name: 'Carlos Eduardo', model: 'Bosch 1000W • Chumbo', status: 'Confirmado', note: 'Triagem concluída · termo de responsabilidade', warning: false, responsible: 'Rafael Mendes', date: '2026-11-18' },
+  { time: '14:30', name: 'Ana Beatriz', model: 'Ciclomotor 1200W • Chumbo', status: 'Validar CNH', note: 'CNH A / ACC · documento pendente', warning: true, responsible: 'Bruna Nogueira', date: '2026-11-18' },
+  { time: '16:00', name: 'Pedro Alves', model: 'K-Zero • Chumbo', status: 'Confirmado', note: 'Triagem concluída · termo de responsabilidade', warning: false, responsible: 'Diego Alves', date: '2026-11-18' },
 ]
 
 const vehicles = [
@@ -18,6 +20,13 @@ const vehicles = [
 
 export function TestRidesPage() {
   const [activeTab, setActiveTab] = useState<'agenda' | 'frota'>('agenda')
+  const { role, userName } = useUserRole()
+  const { selectedDate } = useDateFilter()
+  const visibleRides = rides.filter((ride) =>
+    ride.date === selectedDate && (role === 'admin' || ride.responsible === userName),
+  )
+  const selectedDateLabel = new Date(`${selectedDate}T12:00:00`).toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })
+  const capitalizedDateLabel = selectedDateLabel.charAt(0).toUpperCase() + selectedDateLabel.slice(1)
 
   return (
     <div className="mx-auto max-w-[1152px]">
@@ -31,7 +40,6 @@ export function TestRidesPage() {
 
       <div className="mb-5 mt-7 flex flex-wrap items-center gap-3">
         <button className="flex h-8 items-center gap-2 rounded-md bg-[#172B49] px-3 text-[10px] text-slate-200">Recife · Piedade <ChevronDown className="h-3 w-3" /></button>
-        <button className="flex h-8 items-center gap-2 rounded-md bg-[#172B49] px-3 text-[10px] text-slate-200">Hoje, 18 novembro <ChevronDown className="h-3 w-3" /></button>
         <div className="ml-auto flex rounded-lg bg-elevated p-1" role="tablist" aria-label="Visualização de Test-Rides">
           <button
             role="tab"
@@ -55,10 +63,10 @@ export function TestRidesPage() {
       <section className={`grid gap-5 ${activeTab === 'frota' ? 'xl:grid-cols-1' : 'xl:grid-cols-[minmax(0,740px)_minmax(300px,1fr)]'}`}>
         {activeTab === 'agenda' && (
           <article className="rounded-xl bg-elevated p-5 sm:p-6">
-            <h2 className="text-base font-semibold">Quarta-feira, 18 de novembro</h2>
-            <p className="mt-1 text-[11px] text-slate-400">4 agendamentos • 2 confirmados • 1 pendente • 1 concluído</p>
+            <h2 className="text-base font-semibold">{capitalizedDateLabel}</h2>
+            <p className="mt-1 text-[11px] text-slate-400">{visibleRides.length} agendamentos na sua visualização</p>
             <div className="mt-6 space-y-4">
-              {rides.map((ride) => (
+              {visibleRides.map((ride) => (
                 <div key={ride.time} className="grid grid-cols-[52px_minmax(0,1fr)] items-start gap-3">
                   <span className="pt-3 text-xs text-slate-400">{ride.time}</span>
                   <article className={`rounded-lg border-l-[3px] ${ride.warning ? 'border-warning' : 'border-brand-500'} bg-raised p-4`}>

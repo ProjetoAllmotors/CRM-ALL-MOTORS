@@ -3,6 +3,7 @@ import type { FormEvent } from 'react'
 import { ArrowUpRight, Check, ChevronDown, Paperclip, Search, Send, Sparkles } from 'lucide-react'
 import { QuickActionButtons } from '../components/features/QuickActionButtons'
 import { useQuickActions } from '../components/features/useQuickActions'
+import { useUserRole } from '../auth/userRoleStore'
 
 interface Conversation {
   name: string
@@ -10,6 +11,7 @@ interface Conversation {
   channel: string
   time: string
   initials: string
+  responsible: string
 }
 
 interface ChatMessage {
@@ -19,12 +21,12 @@ interface ChatMessage {
 }
 
 const conversations: Conversation[] = [
-  { name: 'Mariana Costa', preview: 'Precisa de carteira para pilotar?', channel: 'WhatsApp · agora', time: '09:12', initials: 'MC' },
-  { name: 'Pedro Alves', preview: 'Qual o tempo de recarga?', channel: 'Instagram · 5 min', time: '09:08', initials: 'PA' },
-  { name: 'Mercado Boa Vista', preview: 'Queremos uma frota para entregas.', channel: 'WhatsApp · 12 min', time: '08:59', initials: 'MB' },
-  { name: 'Ana Beatriz', preview: 'Já enviei minha habilitação.', channel: 'WhatsApp · 23 min', time: '08:48', initials: 'AB' },
-  { name: 'Lucas Ferreira', preview: 'Podemos agendar para sábado?', channel: 'Instagram · 41 min', time: '08:30', initials: 'LF' },
-  { name: 'João Lima', preview: 'Confirma minha revisão.', channel: 'WhatsApp · 1 h', time: '08:02', initials: 'JL' },
+  { name: 'Mariana Costa', preview: 'Precisa de carteira para pilotar?', channel: 'WhatsApp · agora', time: '09:12', initials: 'MC', responsible: 'Rafael Mendes' },
+  { name: 'Pedro Alves', preview: 'Qual o tempo de recarga?', channel: 'Instagram · 5 min', time: '09:08', initials: 'PA', responsible: 'Rafael Mendes' },
+  { name: 'Mercado Boa Vista', preview: 'Queremos uma frota para entregas.', channel: 'WhatsApp · 12 min', time: '08:59', initials: 'MB', responsible: 'Marina Costa' },
+  { name: 'Ana Beatriz', preview: 'Já enviei minha habilitação.', channel: 'WhatsApp · 23 min', time: '08:48', initials: 'AB', responsible: 'Bruna Nogueira' },
+  { name: 'Lucas Ferreira', preview: 'Podemos agendar para sábado?', channel: 'Instagram · 41 min', time: '08:30', initials: 'LF', responsible: 'Rafael Mendes' },
+  { name: 'João Lima', preview: 'Confirma minha revisão.', channel: 'WhatsApp · 1 h', time: '08:02', initials: 'JL', responsible: 'Rafael Mendes' },
 ]
 
 const initialMessages: ChatMessage[] = [
@@ -35,6 +37,7 @@ const initialMessages: ChatMessage[] = [
 
 export function OmnichannelPage() {
   const { openTestRide, openQuickReply } = useQuickActions()
+  const { role, userName } = useUserRole()
   const [selected, setSelected] = useState(conversations[0])
   const [search, setSearch] = useState('')
   const [draft, setDraft] = useState('')
@@ -43,8 +46,11 @@ export function OmnichannelPage() {
   const [notice, setNotice] = useState('')
 
   const visibleConversations = useMemo(
-    () => conversations.filter((conversation) => conversation.name.toLowerCase().includes(search.toLowerCase())),
-    [search],
+    () => conversations.filter((conversation) =>
+      (role === 'admin' || conversation.responsible === userName)
+      && conversation.name.toLowerCase().includes(search.toLowerCase()),
+    ),
+    [role, search, userName],
   )
 
   function sendMessage(event: FormEvent<HTMLFormElement>) {
@@ -171,7 +177,7 @@ export function OmnichannelPage() {
           <Info label="Etapa" value="Novo Lead" />
           <Info label="Interesse" value="K1-May · Grafeno" />
           <Info label="Preferência" value="Cartão de crédito · 12x" />
-          <Info label="Responsável" value="Camila Santos" />
+          <Info label="Responsável" value={selected.responsible} />
           <Info label="Origem" value={selected.channel.startsWith('WhatsApp') ? 'WhatsApp orgânico' : 'Instagram orgânico'} />
           <Info label="Último contato" value="Hoje, às 09:14" />
           <button onClick={() => setNotice('Perfil demonstrativo do cliente selecionado.')} className="mt-5 flex w-full items-center justify-between rounded-md bg-raised px-3 py-2 text-[9px] text-slate-300 hover:bg-slate-700">

@@ -1,20 +1,53 @@
 import { useState } from 'react'
-import { CalendarDays, ChevronDown, Grid2X2, Menu, Search, X } from 'lucide-react'
-import { NavLink, Outlet } from 'react-router-dom'
+import { Bell, CalendarDays, ChevronDown, LogOut, Menu, Moon, PanelLeftClose, PanelLeftOpen, Search, Sun, X } from 'lucide-react'
+import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { navigationItems } from '../../data/navigation'
 import { useQuickActions } from '../features/useQuickActions'
+import { useUserRole } from '../../auth/userRoleStore'
+import { DateFilterContext } from './DateFilterContext'
 
 const regions = ['Pernambuco', 'Alagoas', 'Paraíba', 'Rio Grande do Norte']
 
 export function AppLayout() {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [sidebarVisible, setSidebarVisible] = useState(() => (
+    window.localStorage.getItem('crm-sidebar-visible') !== 'false'
+  ))
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => (
+    window.localStorage.getItem('crm-theme') === 'light' ? 'light' : 'dark'
+  ))
+  const [selectedDate, setSelectedDate] = useState(() => (
+    window.localStorage.getItem('crm-selected-date') || '2026-11-18'
+  ))
   const { region, openRegionFilter, openGlobalSearch } = useQuickActions()
+  const { role, userName, setProfile } = useUserRole()
+  const navigate = useNavigate()
+
+  function toggleTheme() {
+    const nextTheme = theme === 'dark' ? 'light' : 'dark'
+    window.localStorage.setItem('crm-theme', nextTheme)
+    setTheme(nextTheme)
+  }
+
+  function signOut() {
+    setProfile('admin')
+    navigate('/login')
+  }
+
+  function toggleSidebar() {
+    const nextVisibility = !sidebarVisible
+    window.localStorage.setItem('crm-sidebar-visible', String(nextVisibility))
+    setSidebarVisible(nextVisibility)
+  }
 
   return (
-    <div className="min-h-screen bg-canvas text-slate-50 lg:flex">
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-56 border-r border-border bg-elevated px-3 py-6 lg:flex lg:flex-col">
-        <SidebarContent />
-      </aside>
+    <DateFilterContext.Provider value={{ selectedDate }}>
+    <div data-theme={theme} className="app-shell min-h-screen bg-canvas text-slate-50 lg:flex">
+      {sidebarVisible && (
+        <aside id="desktop-sidebar" className="fixed inset-y-0 left-0 z-30 hidden w-56 border-r border-border bg-elevated px-3 py-6 lg:flex lg:flex-col">
+          <SidebarContent />
+        </aside>
+      )}
 
       {mobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
@@ -38,8 +71,19 @@ export function AppLayout() {
         </div>
       )}
 
-      <div className="min-w-0 flex-1 lg:ml-56">
+      <div className={`min-w-0 flex-1 ${sidebarVisible ? 'lg:ml-56' : 'lg:ml-0'}`}>
         <header className="sticky top-0 z-20 flex min-h-20 flex-wrap items-center gap-3 border-b border-border bg-elevated px-4 py-3 sm:px-6 lg:flex-nowrap lg:px-7">
+          <button
+            type="button"
+            onClick={toggleSidebar}
+            aria-label={sidebarVisible ? 'Esconder menu lateral' : 'Mostrar menu lateral'}
+            aria-controls="desktop-sidebar"
+            aria-expanded={sidebarVisible}
+            title={sidebarVisible ? 'Esconder menu lateral' : 'Mostrar menu lateral'}
+            className="hidden h-[38px] w-[38px] shrink-0 items-center justify-center rounded-lg bg-raised text-slate-300 hover:bg-slate-700 hover:text-white lg:flex"
+          >
+            {sidebarVisible ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeftOpen className="h-4 w-4" />}
+          </button>
           <button
             type="button"
             aria-label="Abrir menu"
@@ -55,14 +99,50 @@ export function AppLayout() {
             <span aria-hidden="true" className="flex-1 text-xs text-slate-400">Buscar cliente, VIN ou modelo</span>
             <Search className="h-4 w-4 shrink-0 text-slate-400" />
           </button>
-          <div className="hidden items-center gap-2 text-xs text-slate-400 xl:flex">
-            <CalendarDays className="h-4 w-4" />
-            18 NOV, 2026
-          </div>
+          <label className="relative flex h-[38px] shrink-0 items-center gap-1.5 rounded-lg bg-raised px-2.5 text-xs text-slate-300" title="Filtrar por data">
+            <CalendarDays className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+            <span className="sr-only">Filtrar por data</span>
+            <input
+              type="date"
+              aria-label="Filtrar por data"
+              value={selectedDate}
+              onChange={(event) => {
+                setSelectedDate(event.target.value)
+                window.localStorage.setItem('crm-selected-date', event.target.value)
+              }}
+              style={{ colorScheme: theme }}
+              className="w-[116px] bg-transparent text-[10px] text-slate-300 focus:outline-none"
+            />
+          </label>
           <div className="ml-auto flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => navigate('/agenda-follow-ups')}
+              aria-label="Abrir agenda de follow-ups"
+              className="relative flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-lg bg-raised text-slate-300 hover:bg-slate-700 hover:text-white"
+            >
+              <Bell className="h-4 w-4" />
+              <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#E53935] px-1 text-[8px] font-bold text-white">5</span>
+            </button>
+            <button
+              type="button"
+              onClick={toggleTheme}
+              aria-label={`Ativar tema ${theme === 'dark' ? 'claro' : 'escuro'}`}
+              className="flex h-[38px] shrink-0 items-center gap-1.5 rounded-lg bg-raised px-2.5 text-[10px] text-slate-200 hover:bg-slate-700"
+            >
+              {theme === 'dark' ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
+              {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+            </button>
+            <button
+              type="button"
+              onClick={signOut}
+              className="flex h-[38px] shrink-0 items-center gap-1.5 rounded-lg bg-raised px-2.5 text-[10px] text-slate-200 hover:bg-slate-700"
+            >
+              <LogOut className="h-3.5 w-3.5" />Sair
+            </button>
             <div className="hidden sm:block">
-              <p className="text-xs font-semibold text-slate-100">Operação Nordeste</p>
-              <p className="mt-1 text-[10px] text-slate-400">Gerência regional</p>
+              <p className="text-xs font-semibold text-slate-100">{userName}</p>
+              <p className="mt-1 text-[10px] text-slate-400">{role === 'admin' ? 'Administrador' : 'Vendedor'}</p>
             </div>
             <span className="ml-2 h-2 w-2 rounded-full bg-success" aria-label="Status conectado" />
           </div>
@@ -72,10 +152,17 @@ export function AppLayout() {
         </main>
       </div>
     </div>
+    </DateFilterContext.Provider>
   )
 }
 
 function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
+  const { role } = useUserRole()
+  const operationalRoutes = ['/dashboard', '/pipeline', '/test-rides', '/catalogo', '/omnichannel', '/clientes', '/propostas', '/agenda-follow-ups', '/pedidos', '/pos-venda', '/encerramentos']
+  const adminRoutes = ['/assistencia', '/automacoes', '/envios', '/regras-acompanhamento', '/usuarios', '/configuracoes']
+  const items = navigationItems.filter((item) => operationalRoutes.includes(item.to) || (role === 'admin' && adminRoutes.includes(item.to)))
+  const managementItems = items.filter((item) => adminRoutes.includes(item.to))
+
   return (
     <>
       <NavLink to="/dashboard" onClick={onNavigate} className="mb-9 block px-3">
@@ -84,7 +171,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
       </NavLink>
       <div className="mb-3 px-3 text-[10px] font-semibold uppercase tracking-wide text-slate-400">Área de trabalho</div>
       <nav aria-label="Navegação principal" className="space-y-1">
-        {navigationItems.filter((item) => item.label !== 'Relatórios' && ['/dashboard', '/pipeline', '/test-rides', '/catalogo', '/omnichannel', '/clientes', '/automacoes'].includes(item.to)).map(({ label, to, icon: Icon }) => (
+        {items.filter((item) => !adminRoutes.includes(item.to)).map(({ label, to, icon: Icon }) => (
           <NavLink
             key={to}
             to={to}
@@ -100,26 +187,38 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
           </NavLink>
         ))}
       </nav>
-      <div className="mt-7 border-t border-border pt-6">
-        <p className="px-2 text-[10px] font-semibold uppercase tracking-wide text-slate-400">Rede Nordeste</p>
-        <ul className="mt-3 space-y-3 px-2">
-          {regions.map((region) => <li key={region} className="text-xs text-slate-400">{region}</li>)}
-        </ul>
-      </div>
-      <div className="mt-auto">
-        <div className="mb-6 rounded-lg bg-[#0D2545] p-3">
-          <p className="font-heading text-base font-semibold leading-5">Energia que<br />move vidas.</p>
-          <p className="mt-2 text-[10px] text-[#66A5FF]">Concessionária AIMA</p>
+      {role === 'admin' && (
+        <div className="mt-7 border-t border-border pt-5">
+          <div className="mb-3 px-3 text-[10px] font-semibold uppercase tracking-wide text-slate-400">Administração</div>
+          <nav aria-label="Administração" className="space-y-1">
+            {managementItems.map(({ label, to, icon: Icon }) => (
+              <NavLink
+                key={to}
+                to={to}
+                onClick={onNavigate}
+                className={({ isActive }) => `flex h-11 items-center gap-3 rounded-lg px-3 text-xs transition-colors ${isActive ? 'bg-[#12305B] font-semibold text-[#66A5FF]' : 'text-slate-400 hover:bg-raised hover:text-slate-100'}`}
+              >
+                <Icon className="h-4 w-4 shrink-0" />
+                <span>{label}</span>
+              </NavLink>
+            ))}
+          </nav>
         </div>
-        <div className="flex gap-2">
-          <button className="h-[38px] flex-1 rounded-lg bg-raised px-3 text-left text-xs hover:bg-slate-700">
-            <Grid2X2 className="mr-2 inline h-3 w-3" />Light Mode
-          </button>
-          <NavLink to="/login" className="flex h-[38px] items-center rounded-lg bg-raised px-4 text-xs hover:bg-slate-700">
-            Sair
-          </NavLink>
-        </div>
-      </div>
+      )}
+      {role === 'admin' && (
+        <>
+          <div className="mt-7 border-t border-border pt-6">
+            <p className="px-2 text-[10px] font-semibold uppercase tracking-wide text-slate-400">Rede Nordeste</p>
+            <ul className="mt-3 space-y-3 px-2">
+              {regions.map((region) => <li key={region} className="text-xs text-slate-400">{region}</li>)}
+            </ul>
+          </div>
+          <div className="mb-6 rounded-lg bg-[#0D2545] p-3">
+            <p className="font-heading text-base font-semibold leading-5">Energia que<br />move vidas.</p>
+            <p className="mt-2 text-[10px] text-[#66A5FF]">Concessionária AIMA</p>
+          </div>
+        </>
+      )}
     </>
   )
 }
